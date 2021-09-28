@@ -1,0 +1,82 @@
+def grafico_linha_composto(valores, cor, estilo_marcador, estilo_linha, limites=None, definir_limites=False,
+                           nome_do_grafico="Gráfico de Linhas Compostas", definir_nomes_eixos=True,
+                           eixox="Eixo X", eixoy="Eixo Y", definir_plano_de_fundo=False, cor_de_fundo="branco",
+                           salvar_arquivo=False):
+    """Retorna e exibe um gráfico de linha com um múltiplos segmentos.
+
+        :param valores: Lista com valores dos eixos x e y, contidos em listas também, necessariamente nessa ordem. Atente-se a essa ordenação, ou erros e inconsistências serão gerados.
+        :type valores: list[list]
+        :param cor: Lista com indicações da cor de cada segmento de linha, respectivamente (ou seja, a cada par de eixo x e y)
+        :type cor: list
+        :param estilo_marcador: Lista de códigos de símbolo marcador de pontos de cada segmento, respectivamente
+        :type estilo_marcador: list
+        :param estilo_linha: Lista de códigos de estilo de cada segmento de linha, respectivamente
+        :type estilo_linha: list
+        :param limites: Lista com limites inferior de x, superior de x, inferior de y, superior de y, respectivamente. Se não tiver esse formato, essa variável será desconsiderada.
+        :type limites: list
+        :param definir_limites: Indica personalização dos limites dos eixos do gráfico, valor padrão False
+        :type definir_limites: bool
+        :param nome_do_grafico: Título do gráfico, valor padrão "Gráfico Linha Simples"
+        :type nome_do_grafico: str
+        :param definir_nomes_eixos: Indica a nomeação dos segmentos, valor padrão True
+        :type definir_nomes_eixos: bool
+        :param eixox: Nome do segmento x, valor padrão "Eixo X"
+        :type eixox: str
+        :param eixoy: Nome do segmento y, valor padrão "EIxo Y"
+        :type eixoy: str
+        :param definir_plano_de_fundo: Indica alteração da cor padrão de plano de fundo do gráfico, valor padrão False
+        :type definir_plano_de_fundo: bool
+        :param cor_de_fundo: Cor do plano de fundo do gráfico, valor padrão "branco"
+        :type cor_de_fundo: str
+        :param salvar_arquivo: Salva o gráfico gerado em PNG de fundo transparente, valor padrão False
+        :type salvar_arquivo: bool
+
+        :return: lista Line2D (ver documentação de Matplolib para mais detalhes)
+        :rtype: Line2D
+    """
+    if limites is None:
+        limites = []
+
+    if len(valores) % 2 == 0 and len(valores) / 2 == len(cor) and len(valores) / 2 == len(estilo_marcador) and len(valores) / 2 == len(estilo_linha):
+        plt.title(nome_do_grafico)
+
+        fechou_grafico = 0
+        cont_estilo = 0
+        e_x = True
+        segmento_x = []
+        segmento_y = []
+
+        for i in valores:
+            if e_x:
+                segmento_x = i
+                e_x = False
+                fechou_grafico += 1
+            elif not e_x:
+                segmento_y = i
+                e_x = True
+                fechou_grafico += 1
+
+            if fechou_grafico == 2:
+
+                estilo_grafico = f"{marcador_converter_notacao_birb_para_matplotlib(estilo_marcador[cont_estilo])}" \
+                                 f"{linha_converter_notacao_birb_para_matplotlib(estilo_linha[cont_estilo])}" \
+                                 f"{cor_converter_notacao_birb_para_matplotlib(cor[cont_estilo])}"
+
+                plt.plot(segmento_x, segmento_y, estilo_grafico)
+                cont_estilo += 1
+                fechou_grafico = 0
+
+        if definir_nomes_eixos:
+            plt.xlabel(eixox)
+            plt.ylabel(eixoy)
+        if definir_limites and len(limites) == 4:
+            plt.axis(limites)
+        if definir_plano_de_fundo:
+            objeto_ax = plt.gca()
+            objeto_ax.set_facecolor(cor_converter_notacao_birb_para_matplotlib(cor_de_fundo))
+        if salvar_arquivo:
+            plt.savefig(f'{nome_do_grafico}.png', transparent=True)
+        plt.show()
+    else:
+        raise ValueError("Uma ou mais condições de execução da função foram desrespeitadas", "paridade de eixos",
+                         "compatibilidade de atibutos de estilo")
